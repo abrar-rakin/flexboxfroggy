@@ -1,0 +1,21 @@
+name: Rename Dependabot PRs
+
+on:
+  pull_request_target:
+    types: [opened]
+    branches: [gh-pages]
+
+jobs:
+  rename-dependabot-pr:
+    runs-on: ubuntu-latest
+    if: github.actor == 'dependabot[bot]' && !startsWith(github.event.pull_request.title, 'chore/')
+    steps:
+      - name: Rename PR
+        run: |
+          echo "Current PR title is '${{ github.event.pull_request.title }}'"
+          NEW_TITLE="chore/${{ github.event.pull_request.title }}"
+          echo "New PR title is '$NEW_TITLE'"
+          gh pr edit ${{ github.event.pull_request.number }} --title "$NEW_TITLE"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
