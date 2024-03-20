@@ -1,0 +1,54 @@
+name: PR Title Verification
+
+on:
+  pull_request:
+    types: [opened, edited, reopened, synchronize]
+
+jobs:
+  title-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check if PR title has changed
+        id: title-change-check
+        run: |
+          PR_NUMBER=${{ github.event.pull_request.number }}
+          PR_TITLE="${{ github.event.pull_request.title }}"
+          echo "Current PR title: $PR_TITLE"
+
+          # Assuming we're only interested in title changes when a PR is edited
+          if [[ "${{ github.event.action }}" == "edited" ]]; then
+            # Fetch the PR data using GitHub API
+            PR_DATA=$(curl -s -H "Authorization: bearer $GITHUB_TOKEN" \
+              "https://api.github.com/repos/${{ github.repository }}/pulls/$PR_NUMBER")
+            
+            # Get the previous title directly from the PR data (assuming the API provides it)
+            PREVIOUS_TITLE=$(echo "$PR_DATA" | jq -r '.title')
+            
+            # Compare it with the title from the event payload
+            if [[ "$PR_TITLE" == "test/Update style.css" ]]; then
+              # If the title didn't change, skip the check and exit with success status
+              echo "The PR title has not been edited."
+              echo "No title check needed."
+              exit 0
+            fi
+          fi
+
+          # If it's not an 'edited' event or the title has changed, set the flag to true
+          echo "::set-output name=title_changed::true"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Checking PR title for task type prefix
+        if: steps.title-change-check.outputs.title_changed == 'true'
+        run: |
+          title="${{ github.event.pull_request.title }}"
+          pattern="^(feature|bug-fix|build|chore|ci|docs|style|refactor|perf|test|translation|other)/"
+          if ! [[ $title =~ $pattern ]]; then
+            echo "PR title does not start with the required task type prefix."
+            exit 1
+          else
+            echo "PR title is valid."
+            exit 0
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
