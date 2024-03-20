@@ -148,6 +148,7 @@ a:hover {
 .games a {
   /* fd d */
   position: relative;
+  /* fdv */
   display: inline-block;
   width: calc(50% - 0.25rem);
   border-radius: 6px;
