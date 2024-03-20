@@ -2,7 +2,7 @@ name: PR Title Verification
 
 on:
   pull_request:
-    types: [opened, edited, reopened]
+    types: [opened, reopened]
 
 jobs:
   title-check:
