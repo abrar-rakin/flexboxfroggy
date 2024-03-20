@@ -157,6 +157,7 @@ a:hover {
 
 .games a:hover::before {
   background-color: rgba(0, 0, 0, 0.1);
+  /* njkhn */
 }
 
 .games a::after {
