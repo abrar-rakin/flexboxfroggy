@@ -2,7 +2,7 @@ name: PR Title Verification
 
 on:
   pull_request:
-    types: [opened, reopened]
+    types: [opened, edited, reopened]
 
 jobs:
   title-check:
@@ -17,20 +17,7 @@ jobs:
 
           # Assuming we're only interested in title changes when a PR is edited
           if [[ "${{ github.event.action }}" == "edited" ]]; then
-            # Fetch the PR data using GitHub API
-            PR_DATA=$(curl -s -H "Authorization: bearer $GITHUB_TOKEN" \
-              "https://api.github.com/repos/${{ github.repository }}/pulls/$PR_NUMBER")
-            
-            # Get the previous title directly from the PR data (assuming the API provides it)
-            PREVIOUS_TITLE=$(echo "$PR_DATA" | jq -r '.title')
-            
-            # Compare it with the title from the event payload
-            if [[ "$PR_TITLE" == "test/Update style.css" ]]; then
-              # If the title didn't change, skip the check and exit with success status
-              echo "The PR title has not been edited."
-              echo "No title check needed."
-              exit 0
-            fi
+            exit 0
           fi
 
           # If it's not an 'edited' event or the title has changed, set the flag to true
