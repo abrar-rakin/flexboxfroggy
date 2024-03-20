@@ -19,7 +19,11 @@ jobs:
           if [[ "${{ github.event.action }}" == "edited" ]]; then
             # Fetch the PR data using GitHub API
             PR_DATA=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+<<<<<<< Updated upstream
               "https://api.github.com/repos/${{ github.repository }}/pulls/$PR_NUMBER")
+=======
+              "https://api.github.com/repos/abrar-rakin/flexboxfroggy/pulls/$PR_NUMBER")
+>>>>>>> Stashed changes
             # Get the current title directly from the PR data
             CURRENT_TITLE=$(echo "$PR_DATA" | jq -r .title)
             
