@@ -8,14 +8,44 @@ jobs:
   title-check:
     runs-on: ubuntu-latest
     steps:
+      - name: Check if PR title has changed
+        id: title-change-check
+        run: |
+          PR_NUMBER=${{ github.event.pull_request.number }}
+          PR_TITLE="${{ github.event.pull_request.title }}"
+          echo "Current PR title: $PR_TITLE"
+          
+          # If the action is 'edited', check if the title has changed
+          if [[ "${{ github.event.action }}" == "edited" ]]; then
+            # Fetch the PR data using GitHub API
+            PR_DATA=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+              "https://api.github.com/repos/${{ github.repository }}/pulls/$PR_NUMBER")
+            # Get the current title directly from the PR data
+            CURRENT_TITLE=$(echo "$PR_DATA" | jq -r .title)
+            
+            # Compare it with the title from the event payload
+            if [ "$PR_TITLE" != "$CURRENT_TITLE" ]; then
+              echo "The PR title has been edited."
+              echo "::set-output name=title_changed::true"
+            else
+              echo "The PR title has not been edited."
+              echo "::set-output name=title_changed::false"
+            fi
+          else
+            # For 'opened' or 'reopened' actions, always check the title
+            echo "::set-output name=title_changed::true"
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
       - name: Checking PR title for task type prefix
+        if: steps.title-change-check.outputs.title_changed == 'true'
         run: |
           title="${{ github.event.pull_request.title }}"
-          pattern="^(feature|bug-fix|build|chore|ci|docs|style|refactor|perf|test|other)/"
+          pattern="^(feature|bug-fix|build|chore|ci|docs|style|refactor|perf|test|translation|other)/"
           if ! [[ $title =~ $pattern ]]; then
-            echo "PR title does not start with 'feature/', 'bug-fix/', 'build/', 'chore/', 'ci/', 'docs/', 'style/', 'refactor/', 'perf/', 'test/', or 'other/'. Please update the title to follow the naming convention."
+            echo "PR title does not start with 'feature/', 'bug-fix/', 'chore/', 'ci/', 'docs/', 'style/', 'refactor/', 'perf/', 'test/', 'translation/', 'other/'"
             exit 1
           fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-

@@ -7,4 +7,3 @@ updates:
     # Check for updates every month
     schedule:
       interval: "daily"
-
